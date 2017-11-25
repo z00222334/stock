@@ -9,6 +9,7 @@ import tushare as ts
 import datetime
 import log,logging
 import  os
+import common
 
 def issuspension(stockid):
     """
@@ -28,11 +29,21 @@ def isdateok(date):
 
 def save2csv(stockid):
     dirname = "stockdata"
+    if os.path.exists(dirname):
+        pass
+    else:
+        os.mkdir(dirname)
+    print "write file for code %s start" % stockid
     filename = stockid + ".csv"
-    path = os.path.abspath(".") + "\\" + dirname + "\\" + filename
+    sep = common.get_sep()
+
+    path = os.path.abspath(".") + sep + dirname + sep + filename
     df = ts.get_hist_data(stockid)
-    df.to_csv(path)
-    print "write file for code %s" % stockid
+    if df is None:
+        pass
+    else:
+        df.to_csv(path)
+    print "write file for code %s end" % stockid
 
 
 def getstockid():
@@ -46,10 +57,14 @@ def getstockid():
     获取后存入文本
     :return:
     """
+    stockfile = "stockcode.csv"
+
+    if os.path.exists(stockfile):
+        logging.debug("code file already get, skip this step")
+        return
     # todo，实现各个条件后获得代码列表：stocklist
     stocklist = ts.get_stock_basics().index
     # stocklist = ["600000","600001"]
-    stockfile = "stockcode.csv"
     for id in stocklist:
         with open(stockfile,'w+') as f:
             for id in stocklist:
@@ -57,6 +72,7 @@ def getstockid():
                 logging.debug("write id %s" % str(id))
 
 if __name__ == '__main__':
+
     logging.debug("starting ...")
     getstockid()
     stocklistfile = "stockcode.csv"
