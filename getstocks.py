@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 
 """
 负责实现获取stock的方法，
@@ -7,9 +7,10 @@
 """
 import tushare as ts
 import datetime
-import log,logging
-import  os
+import log, logging
+import os
 import common
+
 
 def issuspension(stockid):
     """
@@ -19,6 +20,7 @@ def issuspension(stockid):
     """
     # todo
 
+
 def isdateok(date):
     """
     判断上市时间是否在规则内，date格式
@@ -26,6 +28,7 @@ def isdateok(date):
     :return:
     """
     # todo
+
 
 def save2csv(stockid):
     dirname = "stockdata"
@@ -66,13 +69,14 @@ def getstockid():
     stocklist = ts.get_stock_basics().index
     # stocklist = ["600000","600001"]
     for id in stocklist:
-        with open(stockfile,'w+') as f:
+        with open(stockfile, 'w+') as f:
             for id in stocklist:
                 f.write(str(id) + ",")
                 logging.debug("write id %s" % str(id))
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
+    count = 0
     logging.debug("starting ...")
     getstockid()
     stocklistfile = "stockcode.csv"
@@ -86,5 +90,7 @@ if __name__ == '__main__':
     for stockid in stockid_list:
         # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
         # ret = is_duotou(stockid, daylist)
+        count = count + 1
         save2csv(stockid)
+    logging.debug("total is %d" % count)
     logging.debug("end ...")
