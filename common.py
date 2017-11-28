@@ -5,6 +5,10 @@ import ConfigParser
 
 CONFIGFILE = "config.ini"
 
+import logging
+
+logging.basicConfig( format="%(asctime)s %(message)s",
+                    level=logging.DEBUG)
 
 def getconfig(section, configname):
     """

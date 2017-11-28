@@ -5,6 +5,7 @@ import time
 import sys
 import os
 import common
+import logging
 
 # 考虑到要呈现的时候如果只有代码，不太直观，需要提供下股票名字
 duotou_dict = {}  # 多头字典，最终提供多头股票信息
@@ -25,28 +26,32 @@ def is_duotou(code, daylist):
     code = str(code)
     print "start calc code %s" % code
 
-    one_info = ts.get_hist_data()
+    one_info = ts.get_hist_data(code)
+    if one_info is None:
+        return False
     # 获得pandas数据的键
     # key = one_info.keys()
 
     ma5 = one_info['ma5']
-    print ma5
-    sys.exit(0)
     ma10 = one_info['ma10']
-
     ma20 = one_info['ma20']
 
     v_ma5 = one_info['v_ma5']
     v_ma10 = one_info['v_ma10']
     v_ma20 = one_info['v_ma20']
 
-    if (ma5[daylist[2]] >= ma10[daylist[2]] and ma10[daylist[2]] >= ma20[daylist[2]]) and \
-            (ma5[daylist[1]] >= ma10[daylist[1]] and ma10[daylist[1]] >= ma20[daylist[1]]) and \
-            not (ma5[daylist[0]] >= ma10[daylist[0]] and ma10[daylist[0]] >= ma20[daylist[0]]):
-        print "%s:多头排列" % code
-        return True
-    else:
-        print "%s:非多头排列" % code
+    # 这里需要处理异常，因为有时候连续三天中间可能有停盘
+    try:
+        if (ma5[daylist[2]] >= ma10[daylist[2]] and ma10[daylist[2]] >= ma20[daylist[2]]) and \
+                (ma5[daylist[1]] >= ma10[daylist[1]] and ma10[daylist[1]] >= ma20[daylist[1]]) and \
+                not (ma5[daylist[0]] >= ma10[daylist[0]] and ma10[daylist[0]] >= ma20[daylist[0]]):
+            print "%s:多头排列" % code
+            return True
+        else:
+            print "%s:非多头排列" % code
+        return False
+    except:
+        logging.error("error in is duotou")
         return False
 
 
@@ -66,4 +71,4 @@ if __name__ == '__main__':
     for stockid in stocklist:
         # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
         # ret = is_duotou(stockid, daylist)
-        is_duotou(daylist)
+        is_duotou(stockid, daylist)
