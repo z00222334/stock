@@ -4,6 +4,11 @@ import tushare as ts
 import time
 import sys
 import os
+import common
+
+# 考虑到要呈现的时候如果只有代码，不太直观，需要提供下股票名字
+duotou_dict = {}  # 多头字典，最终提供多头股票信息
+noDuotou_dict = {}  # 非多头字典，最终提供非多头股票信息
 
 
 def is_duotou(code, daylist):
@@ -55,26 +60,10 @@ def get_today_date():
     return today_date
 
 
-
-
-
 if __name__ == '__main__':
-    stocklistfile = "stockcode.csv"
-    with open(stocklistfile, 'r') as stockfile:
-        stockid_list = stockfile.readline().split(',')
-    tmplist = []
-    for i in stockid_list:
-        if i:
-            tmplist.append(i)
-    stockid_list = tmplist
-
-    daylist = ["2017-11-14", "2017-11-15", "2017-11-16"]
-    # daylist = "2017-11-10"
-    # daylist = get_today_date()
-    # stockid_list = ts.get_stock_basics().index
-    # stockid_list = [600000, 300318, 600827]
-    # print  stockid_list
-    for stockid in stockid_list:
+    stocklist = common.get_stocklist()
+    daylist = common.getconfig(section="basicinfo", configname="daylist")
+    for stockid in stocklist:
         # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
         # ret = is_duotou(stockid, daylist)
-        save2csv(stockid)
+        is_duotou(daylist)
