@@ -68,11 +68,10 @@ def getstockid():
     # todo，实现各个条件后获得代码列表：stocklist
     stocklist = ts.get_stock_basics().index
     # stocklist = ["600000","600001"]
-    for id in stocklist:
-        with open(stockfile, 'w+') as f:
-            for id in stocklist:
-                f.write(str(id) + ",")
-                logging.debug("write id %s" % str(id))
+    with open(stockfile, 'w+') as f:
+        for id in stocklist:
+            f.write(str(id) + ",")
+            logging.debug("write id %s" % str(id))
 
 
 if __name__ == '__main__':
