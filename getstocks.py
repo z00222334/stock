@@ -7,7 +7,7 @@
 """
 import tushare as ts
 import datetime
-import log, logging
+import logging
 import os
 import common
 
