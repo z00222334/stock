@@ -6,6 +6,8 @@ import sys
 import os
 import common
 import logging
+import pandas as pd
+
 
 # 考虑到要呈现的时候如果只有代码，不太直观，需要提供下股票名字
 duotou_dict = {}  # 多头字典，最终提供多头股票信息
@@ -25,33 +27,41 @@ def is_duotou(code, daylist):
     # 获取单个股票的数据，进行分析
     code = str(code)
     print "start calc code %s" % code
+    csvpath = "stockdata/%s.csv" % code
+    if not os.path.exists(csvpath):
+        logging.error("%s file not exist" % code)
+        return
 
-    one_info = ts.get_hist_data(code)
+    one_info = pd.read_csv(csvpath).set_index('date').head(n=10)
+    print one_info
+    # one_info = ts.get_hist_data(code)
     if one_info is None:
         return False
     # 获得pandas数据的键
     # key = one_info.keys()
-
-    ma5 = one_info['ma5']
-    ma10 = one_info['ma10']
-    ma20 = one_info['ma20']
-
-    v_ma5 = one_info['v_ma5']
-    v_ma10 = one_info['v_ma10']
-    v_ma20 = one_info['v_ma20']
-
+    print type(daylist[0])
+    d1 = one_info.ix[daylist[0]]
+    print "d1 is:"
+    print d1
+    sys.exit(1)
     # 这里需要处理异常，因为有时候连续三天中间可能有停盘
     try:
-        if (ma5[daylist[2]] >= ma10[daylist[2]] and ma10[daylist[2]] >= ma20[daylist[2]]) and \
-                (ma5[daylist[1]] >= ma10[daylist[1]] and ma10[daylist[1]] >= ma20[daylist[1]]) and \
-                not (ma5[daylist[0]] >= ma10[daylist[0]] and ma10[daylist[0]] >= ma20[daylist[0]]):
+        d1 = one_info.ix[daylist[0]]
+        print "d1 is:"
+        print d1
+
+        d2 = one_info[daylist[1]]
+        d3 = one_info[daylist[2]]
+        if not (d1['ma5'] >= d1['ma10'] and d1['ma10'] >= d1['ma20'] ) and \
+                (d2['ma5'] >= d2['ma10'] and d2['ma10'] >= d2['ma20']) and \
+                (d3['ma5'] >= d3['ma10'] and d3['ma10'] >= d3['ma20']):
             print "%s:多头排列" % code
             return True
         else:
             print "%s:非多头排列" % code
-        return False
+            return False
     except:
-        logging.error("error in is duotou")
+        logging.error("error in  is_duotou")
         return False
 
 
@@ -68,7 +78,9 @@ def get_today_date():
 if __name__ == '__main__':
     stocklist = common.get_stocklist()
     daylist = common.getconfig(section="basicinfo", configname="daylist")
-    for stockid in stocklist:
+    daylist = daylist.split(",")
+    # for stockid in stocklist:
+    for stockid in ["000001","000002"]:
         # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
         # ret = is_duotou(stockid, daylist)
         is_duotou(stockid, daylist)
