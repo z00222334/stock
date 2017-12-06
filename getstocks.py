@@ -74,7 +74,7 @@ def getstockid():
             logging.debug("write id %s" % str(id))
 
 
-if __name__ == '__main__':
+def run():
     count = 0
     logging.debug("starting ...")
     getstockid()
@@ -93,3 +93,7 @@ if __name__ == '__main__':
         save2csv(stockid)
     logging.debug("total is %d" % count)
     logging.debug("end ...")
+
+
+if __name__ == '__main__':
+    run()
