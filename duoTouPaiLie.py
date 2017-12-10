@@ -15,8 +15,7 @@ import getstocks
 
 class duotouCode:
     duotou_list = []
-    # stocklist = common.get_stocklist()
-    stocklist = ["300726"]
+    stocklist = common.get_stocklist()
 
     def run(self):
 
@@ -30,6 +29,7 @@ class duotouCode:
 
         print "*" * 100
         print self.duotou_list
+
 
     def is_duotou(self, code, daylist):
         """

@@ -11,6 +11,7 @@ import logging
 import os
 import common
 
+IPODATE = 200   # 上市时间150天
 
 def issuspension(stockid):
     """
@@ -21,13 +22,15 @@ def issuspension(stockid):
     # todo
 
 
-def isdateok(date):
+def get_date_filter(df):
     """
     判断上市时间是否在规则内，date格式
     :param stockid:
     :return:
     """
     # todo
+
+
 
 
 def save2csv(stockid):
@@ -42,11 +45,15 @@ def save2csv(stockid):
 
     path = os.path.abspath(".") + sep + dirname + sep + filename
     df = ts.get_hist_data(stockid)
+    length = len(df.index)
+    if length <= IPODATE:
+        logging.debug("ipodate not longer than %d days,skip %s!" % (IPODATE,stockid))
+        return False
+    df = df.head(100)
     if df is None:
         pass
     else:
         df.to_csv(path)
-    print "write file for code %s end" % stockid
 
 
 def getstockid():

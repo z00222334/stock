@@ -42,3 +42,15 @@ def get_stocklist():
         if i:
             tmplist.append(i)
     return tmplist
+
+
+def get_stockfile_list(self):
+    """
+    获取所有股票文件列表，便于统计，此处的文件列表已经剔除了不复合条件的股票
+    这样不用从全局的股票列表来遍历，缩短时间
+    :param self:
+    :return:
+    """
+    filelist = os.listdir('stockdata')
+    logging.debug("file no is :%d" % len(filelist))
+    return filelist
