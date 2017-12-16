@@ -64,6 +64,7 @@ class duotouCode:
             d1 = one_info.ix[daylist[0]]
             d2 = one_info.ix[daylist[1]]
             d3 = one_info.ix[daylist[2]]
+            logging.debug("d1 is %s;d2 is %s;d3 is %s" % (d1,d2,d3))
             if not (d1['ma5'] >= d1['ma10'] and d1['ma10'] >= d1['ma20']) and \
                     (d2['ma5'] >= d2['ma10'] and d2['ma10'] >= d2['ma20']) and \
                     (d3['ma5'] >= d3['ma10'] and d3['ma10'] >= d3['ma20']):
