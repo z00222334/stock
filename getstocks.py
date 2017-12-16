@@ -11,7 +11,7 @@ import logging
 import os
 import common
 
-IPODATE = 200   # 上市时间150天
+IPODATE = 300   # 上市时间150天
 
 def issuspension(stockid):
     """
