@@ -27,6 +27,9 @@ class duotouCode:
             # ret = is_duotou(stockid, daylist)
             self.is_duotou(stockid, daylist)
 
+        with open("DuoTou.txt",'w') as f:
+            for i in self.duotou_list:
+                f.writelines(i)
         print "*" * 100
         print self.duotou_list
 
@@ -58,7 +61,7 @@ class duotouCode:
         # key = one_info.keys()
         # print type(daylist[0])
         # print daylist[0]
-        d1 = one_info.ix[daylist[0]]
+        # d1 = one_info.ix[daylist[0]]
         # 这里需要处理异常，因为有时候连续三天中间可能有停盘
         try:
             d1 = one_info.ix[daylist[0]]
@@ -89,6 +92,6 @@ class duotouCode:
 
 
 if __name__ == '__main__':
-    getstocks.run()
+    # getstocks.run()
     duotou = duotouCode()
     duotou.run()
