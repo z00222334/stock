@@ -8,6 +8,8 @@ import common
 import logging
 import pandas as pd
 import getstocks
+import datetime
+
 
 # 考虑到要呈现的时候如果只有代码，不太直观，需要提供下股票名字
 # duotou_dict = {}  # 多头字典，最终提供多头股票信息
@@ -17,21 +19,25 @@ class duotouCode:
     duotou_list = []
     stocklist = common.get_stocklist()
 
-    def run(self):
+    def run(self,daylist):
 
-        daylist = common.getconfig(section="basicinfo", configname="daylist")
-        daylist = daylist.split(",")
+
         # for stockid in stocklist:
         for stockid in self.stocklist:
             # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
             # ret = is_duotou(stockid, daylist)
             self.is_duotou(stockid, daylist)
-
-        with open("DuoTou.txt",'w') as f:
+        result_file = "DuoTou.txt"
+        with open(result_file,'w') as f:
             for i in self.duotou_list:
-                f.writelines(i)
+                f.writelines(i+"\n")
+        with open(result_file, 'r') as f:
+            allinfo = f.readlines()
+            print allinfo
+            common.mailresult(str(allinfo))
         print "*" * 100
         print self.duotou_list
+        print "Total number is : %d" % len(self.duotou_list)
 
 
     def is_duotou(self, code, daylist):
@@ -71,27 +77,66 @@ class duotouCode:
             if not (d1['ma5'] >= d1['ma10'] and d1['ma10'] >= d1['ma20']) and \
                     (d2['ma5'] >= d2['ma10'] and d2['ma10'] >= d2['ma20']) and \
                     (d3['ma5'] >= d3['ma10'] and d3['ma10'] >= d3['ma20']):
-                print "%s:多头排列" % code
+                logging.debug("%s:多头排列" % code)
                 self.duotou_list.append(code)
                 return True
             else:
-                print "%s:非多头排列" % code
+                logging.debug("%s:非多头排列" % code)
                 return False
         except:
             logging.error("error in  is_duotou")
             return False
 
-    def get_today_date():
+    @staticmethod
+    def get_last_trade_days():
         """
         获取今天的日期，格式指定'%Y-%m-%d',应用到tushare中的方法调用
         :return:
         """
-        today_date = time.strftime('%Y-%m-%d', time.localtime(time.time()))
-        # todo 如果是周末，延迟到上个周五，其他情况非交易日，自行设置日期，代码暂时没写上去
-        return today_date
+        today_date = datetime.datetime.now()#.strftime('%Y-%m-%d')
+        yest_date = today_date + datetime.timedelta(days=-1)
+        yest_yest_date = yest_date + datetime.timedelta(days=-1)
+        while True:
+            if not common.is_trade_day(today_date.strftime('%Y-%m-%d')):
+                logging.debug("%s is not trade day." % today_date.strftime('%Y-%m-%d') )
+                today_date = today_date + datetime.timedelta(days=-1)
+            else:
+                while True:
+                    if not common.is_trade_day(yest_date.strftime('%Y-%m-%d')):
+                        logging.debug("%s is not trade day." % yest_date.strftime('%Y-%m-%d') )
+                        yest_date = yest_date + datetime.timedelta(days=-1)
+                    else:
+                        while True:
+                            yest_yest_date = yest_date + datetime.timedelta(days=-1)
+                            if not common.is_trade_day(yest_yest_date.strftime('%Y-%m-%d')):
+                                logging.debug("%s is not trade day." % yest_yest_date.strftime('%Y-%m-%d'))
+                                yest_yest_date = yest_yest_date + datetime.timedelta(days=-1)
+                            else:
+                                break
+                        break
+                    break
+            break
+
+        today_date = today_date.strftime('%Y-%m-%d')
+        yest_date = yest_date.strftime('%Y-%m-%d')
+        yest_yest_date = yest_yest_date.strftime('%Y-%m-%d')
+        return yest_yest_date, yest_date, today_date
 
 
 if __name__ == '__main__':
+    # 在这里进行csv股票信息刷新，注释就不刷新
     # getstocks.run()
     duotou = duotouCode()
-    duotou.run()
+    isAutoDate = False  # 控制是使用自动时间还是使用配置的时间列表。方便调测使用
+    if isAutoDate:
+        # 如果采用自动模式的话 时间直接用自动生成的方法就可以。会返回一个元祖，实际上在执行的时候就是当列表使用的
+        daylist = duotou.get_last_trade_days()
+        logging.debug("daylist is %s" % str(daylist))
+    else:
+        # 否则使用配置的时间列表
+        daylist = common.getconfig(section="basicinfo", configname="daylist")
+        daylist = daylist.split(",")
+
+
+    duotou.run(daylist)
+
