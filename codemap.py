@@ -7,14 +7,14 @@ import os
 # ret = ts.get_today_all()
 # codelist = ret['code']
 # namelist = ret['name']
+# codemap_file = "codemap.csv"
 #
-# codemap = {}
-#
-# for i in len(codelist):
-#     codemap[codelist[i]] = namelist[i]
-#
-# print codemap
+# with open(codemap_file, 'w') as f:
+#     f.writelines("code"+"," + "name" + "\n")
+#     for i in range(len(ret)):
+#         # print type(namelist[i])
+#         # 这里发现namelist的元素都是Unicode的，不是str因此需要转换，转换就编码成utf-8吧，方便点。
+#         f.writelines(str(codelist[i]) + "," + namelist[i].encode("utf-8") + "\n")
 
-ret = ts.get_today_all().to_csv("tmp.csv")
-s = pd.read_csv("tmp.txt").head(10)
-print s
+
+

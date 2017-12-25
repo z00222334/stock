@@ -54,3 +54,15 @@ def get_stockfile_list(self):
     filelist = os.listdir('stockdata')
     logging.debug("file no is :%d" % len(filelist))
     return filelist
+
+def get_stockname_from_code(self, code):
+    """
+    通过股票代码，获取到股票名字
+    :param self:
+    :param code:
+    :return:
+    """
+
+    codemap_file = "codemap.csv"
+    ret = pd.read_csv(codemap_file)
+    return ret.set_index("code")[code]
