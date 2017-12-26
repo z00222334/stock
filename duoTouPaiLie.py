@@ -20,8 +20,6 @@ class duotouCode:
     stocklist = common.get_stocklist()
 
     def run(self,daylist):
-
-
         # for stockid in stocklist:
         for stockid in self.stocklist:
             # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
@@ -30,7 +28,7 @@ class duotouCode:
         result_file = "DuoTou.txt"
         with open(result_file,'w') as f:
             for i in self.duotou_list:
-                f.writelines(i+"\n")
+                f.writelines(i+"," + common.get_stockname_from_code(int(i)) + "\n")
         with open(result_file, 'r') as f:
             allinfo = f.readlines()
             print allinfo
@@ -39,7 +37,12 @@ class duotouCode:
         print self.duotou_list
         print "Total number is : %d" % len(self.duotou_list)
 
-
+    def is_going_up(self):
+        """
+        判断趋势是否向上
+        :return:
+        """
+        # todo
     def is_duotou(self, code, daylist):
         """
         根据股票代码和日期，返回当日是否均线多头排列
@@ -53,7 +56,7 @@ class duotouCode:
         # 获取单个股票的数据，进行分析
         code = str(code)
         print "start calc code %s" % code
-        csvpath = "stockdata/%s.csv" % code
+        csvpath = os.pardir + os.path.sep + "stockdata"+os.path.sep+"%s.csv" % code
         if not os.path.exists(csvpath):
             logging.error("%s file not exist" % code)
             return

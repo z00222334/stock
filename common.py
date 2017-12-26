@@ -6,6 +6,7 @@ import tushare as ts
 import smtplib
 from email.mime.text import MIMEText
 from email.header import Header
+import pandas as pd
 
 
 CONFIGFILE = "config.ini"
@@ -87,7 +88,7 @@ def mailresult(ctx):
     smtp.quit()
 
 	
-def get_stockname_from_code(self, code):
+def get_stockname_from_code(code):
     """
     通过股票代码，获取到股票名字
     :param self:
@@ -96,8 +97,13 @@ def get_stockname_from_code(self, code):
     """
     codemap_file = "codemap.csv"
     ret = pd.read_csv(codemap_file)
-    return ret.set_index("code")[code]
+    try:
+        reslut = ret.set_index("code").ix[code]
+        return reslut
+    except :
+        return "-1"
 								
 	
 if __name__ == '__main__':
-    mailresult("123")
+    rest = get_stockname_from_code(603978)
+    print rest
