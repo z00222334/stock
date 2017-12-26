@@ -34,7 +34,7 @@ def get_date_filter(df):
 
 
 def save2csv(stockid):
-    dirname = "stockdata"
+    dirname = os.pardir + os.path.sep +"stockdata"
     if os.path.exists(dirname):
         pass
     else:
