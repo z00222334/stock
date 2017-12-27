@@ -58,6 +58,7 @@ class duotouCode:
         print "start calc code %s" % code
         csvpath = os.pardir + os.path.sep + "stockdata"+os.path.sep+"%s.csv" % code
         if not os.path.exists(csvpath):
+            # 这里可能存在异常，文件有可能不存在，因为获取的时候，存入cvs，有时候会timeout
             logging.error("%s file not exist" % code)
             return
 
@@ -71,7 +72,8 @@ class duotouCode:
         # print type(daylist[0])
         # print daylist[0]
         # d1 = one_info.ix[daylist[0]]
-        # 这里需要处理异常，因为有时候连续三天中间可能有停盘
+        # 这里需要处理异常，因为有时候连续三天中间可能有停盘;
+
         try:
             d1 = one_info.ix[daylist[0]]
             d2 = one_info.ix[daylist[1]]
