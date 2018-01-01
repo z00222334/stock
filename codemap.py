@@ -2,29 +2,43 @@
 import tushare as ts
 import logging
 import pandas as pd
-
 import os
-# print ret['name']
-codemap_file = "codemap.csv"
+
+CODEMAP_FILE = "codemap.csv"
 
 
 def generate_map():
     ret = ts.get_today_all()
-    codelist = ret['code']
+    ret = ret.set_index('code')
     namelist = ret['name']
-
-    with open(codemap_file, 'w') as f:
-        f.writelines("code"+"," + "name" + "\n")
-        for i in range(len(ret)):
+    pelist = ret['per']
+    amountlist = ret['amount']
+    count = 0
+    with open(CODEMAP_FILE, 'w') as f:
+        f.writelines("name,code,pe\n")
+        for code in ret.index:
+            pe = pelist.get(code)
+            if pe >= 100 or pe <= 0:
+                # 如果pe过大，就不统计进来了，没用，风险过高
+                continue
+            if amountlist.get(code) == 0:
+                # 如果成交量是0 说明是停牌的，不需要关注额。
+                continue
             # print type(namelist[i])
             # 这里发现namelist的元素都是Unicode的，不是str因此需要转换，转换就编码成utf-8吧，方便点。
-            if "N" not in str(codelist[i]): # 如果不是新股上市 那就写入
-                f.writelines(str(codelist[i]) + "," + namelist[i].encode("utf-8") + "\n")
+            stockname = namelist.get(code).encode('utf-8')
+            if "ST" in stockname or "N" in stockname:
+                # 新股和退市股 不考虑
+                continue
+            count = count + 1
+            writeIn = "%s,\"%s\",%s\n" % (stockname, str(code), str(pe))
+            f.writelines(writeIn)
+            logging.debug("write code %s end" % str(code))
     logging.debug("get code and name map end.")
+
 
 if __name__ == '__main__':
     generate_map()
-
-    # print pd.read_csv(codemap_file).set_index("code")
-    # s=pd.read_csv(codemap_file).set_index("code")
+    # print pd.read_csv(CODEMAP_FILE).set_index("code")
+    # s=pd.read_csv(CODEMAP_FILE).set_index("code")
     # print s.ix[603283]["name"]

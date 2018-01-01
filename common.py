@@ -1,5 +1,6 @@
 # coding: utf-8
 
+import sys
 import platform
 import ConfigParser
 import tushare as ts
@@ -8,13 +9,14 @@ from email.mime.text import MIMEText
 from email.header import Header
 import pandas as pd
 
-
 CONFIGFILE = "config.ini"
+STOCKMAP = "codemap.csv"
 
 import logging
 
-logging.basicConfig( format="%(asctime)s %(message)s",
+logging.basicConfig(format="%(asctime)s %(message)s",
                     level=logging.DEBUG)
+
 
 def getconfig(section, configname):
     """
@@ -24,30 +26,21 @@ def getconfig(section, configname):
     return cf.get(section, configname)
 
 
-def get_sep():
-    """
-    获取系统类型然后根据系统类型获得路径分隔符
-    """
-    if platform.system() == "Darwin":
-        sep = "/"
-    else:
-        sep = "\\"
-    # print "system sep is %s" % sep
-    return sep
-
-
 def get_stocklist():
     """
     获取所有股票列表
     """
-    stocklistfile = "stockcode.csv"
-    with open(stocklistfile, 'r') as stockfile:
-        stockid_list = stockfile.readline().split(',')
-    tmplist = []
-    for i in stockid_list:
-        if i:
-            tmplist.append(i)
-    return tmplist
+    # 由于pandas 读取csv文件的时候会出现数字去掉前面的0的现象，导致无法获取到真正的股票id
+    # 因此需要限制code的读取类型是str
+    ret = pd.read_csv(STOCKMAP, converters={'code': str})
+    alllist = ret['code']
+    result_list = []
+    for i in alllist:
+        if "N" not in i and "ST" not in i:
+            result_list.append(i)
+        else:
+            logging.debug("stock %s is not needed" % i)
+    return result_list
 
 
 def get_stockfile_list():
@@ -61,6 +54,7 @@ def get_stockfile_list():
     logging.debug("file no is :%d" % len(filelist))
     return filelist
 
+
 def is_trade_day(date):
     all_day = ts.trade_cal()
     for i in ts.trade_cal()['calendarDate']:
@@ -70,9 +64,10 @@ def is_trade_day(date):
     logging.debug("%s is not tradeday" % date)
     return False
 
+
 def mailresult(ctx):
     if not ctx:
-        return 
+        return
     receiver = 'zjny.my@163.com'
     subject = 'python email test'
     smtpserver = 'smtp.qq.com'
@@ -87,7 +82,7 @@ def mailresult(ctx):
     smtp.sendmail(sender, receiver, msg.as_string())
     smtp.quit()
 
-	
+
 def get_stockname_from_code(code):
     """
     通过股票代码，获取到股票名字
@@ -98,12 +93,19 @@ def get_stockname_from_code(code):
     codemap_file = "codemap.csv"
     ret = pd.read_csv(codemap_file)
     try:
-        reslut = ret.set_index("code").ix[code]
-        return reslut
-    except :
+
+        result = ret.set_index("code").ix[code].get("name")
+        if "ST" in result:
+            return "ST"
+        return result
+    except:
         return "-1"
-								
-	
+
+
 if __name__ == '__main__':
+
+    for i in get_stocklist():
+        print i
+    sys.exit(1)
     rest = get_stockname_from_code(603978)
     print rest

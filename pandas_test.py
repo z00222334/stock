@@ -4,16 +4,21 @@
 import pandas as pd
 import tushare as ts
 
-all_day = ts.trade_cal()
-# if "2017-12-20" in ts.trade_cal()
-for i in ts.trade_cal()['calendarDate']:
-    if "2017-12-20"  == i:
-        print("true")
-# csvpath = "stockdata/300726.csv"
-# # df = pd.read_csv(csvpath)
-# # # print df.head(n=5)
-# # day = "2017-11-24"
-# # print df.head(n=100).set_index("date").ix[day]
+# all_day = ts.trade_cal()
+# # if "2017-12-20" in ts.trade_cal()
+# for i in ts.trade_cal()['calendarDate']:
+#     if "2017-12-20"  == i:
+#         print("true")
+csvpath = "../stockdata/000001.csv"
+df = pd.read_csv(csvpath)
+# print df.head(n=5)
+day = "2017-11-24"
+# print df.head(n=100).set_index("date").ix[day]
+print df.get(day)
+print df.index
+for i in  df.index:
+    print i
+
 #
 # one_info = pd.read_csv(csvpath).set_index('date').head(n=100)
 # print one_info

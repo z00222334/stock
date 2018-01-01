@@ -19,19 +19,21 @@ class duotouCode:
     duotou_list = []
     stocklist = common.get_stocklist()
 
-    def run(self,daylist):
+    def run(self, daylist):
         # for stockid in stocklist:
         for stockid in self.stocklist:
             # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
             # ret = is_duotou(stockid, daylist)
             self.is_duotou(stockid, daylist)
         result_file = "DuoTou.txt"
-        with open(result_file,'w') as f:
+        with open(result_file, 'w') as f:
             for i in self.duotou_list:
-                f.writelines(i+"," + common.get_stockname_from_code(int(i)) + "\n")
+                stockname = common.get_stockname_from_code(int(i))
+                if stockname != "ST":
+                    f.writelines(i + "," + stockname + "\n")
         with open(result_file, 'r') as f:
             allinfo = f.readlines()
-            print allinfo
+            # print allinfo
             common.mailresult(str(allinfo))
         print "*" * 100
         print self.duotou_list
@@ -43,6 +45,7 @@ class duotouCode:
         :return:
         """
         # todo
+
     def is_duotou(self, code, daylist):
         """
         根据股票代码和日期，返回当日是否均线多头排列
@@ -56,7 +59,7 @@ class duotouCode:
         # 获取单个股票的数据，进行分析
         code = str(code)
         print "start calc code %s" % code
-        csvpath = os.pardir + os.path.sep + "stockdata"+os.path.sep+"%s.csv" % code
+        csvpath = os.pardir + os.path.sep + "stockdata" + os.path.sep + "%s.csv" % code
         if not os.path.exists(csvpath):
             # 这里可能存在异常，文件有可能不存在，因为获取的时候，存入cvs，有时候会timeout
             logging.error("%s file not exist" % code)
@@ -78,7 +81,7 @@ class duotouCode:
             d1 = one_info.ix[daylist[0]]
             d2 = one_info.ix[daylist[1]]
             d3 = one_info.ix[daylist[2]]
-            logging.debug("d1 is %s;d2 is %s;d3 is %s" % (d1,d2,d3))
+            logging.debug("d1 is %s;d2 is %s;d3 is %s" % (d1, d2, d3))
             if not (d1['ma5'] >= d1['ma10'] and d1['ma10'] >= d1['ma20']) and \
                     (d2['ma5'] >= d2['ma10'] and d2['ma10'] >= d2['ma20']) and \
                     (d3['ma5'] >= d3['ma10'] and d3['ma10'] >= d3['ma20']):
@@ -98,17 +101,17 @@ class duotouCode:
         获取今天的日期，格式指定'%Y-%m-%d',应用到tushare中的方法调用
         :return:
         """
-        today_date = datetime.datetime.now()#.strftime('%Y-%m-%d')
+        today_date = datetime.datetime.now()  # .strftime('%Y-%m-%d')
         yest_date = today_date + datetime.timedelta(days=-1)
         yest_yest_date = yest_date + datetime.timedelta(days=-1)
         while True:
             if not common.is_trade_day(today_date.strftime('%Y-%m-%d')):
-                logging.debug("%s is not trade day." % today_date.strftime('%Y-%m-%d') )
+                logging.debug("%s is not trade day." % today_date.strftime('%Y-%m-%d'))
                 today_date = today_date + datetime.timedelta(days=-1)
             else:
                 while True:
                     if not common.is_trade_day(yest_date.strftime('%Y-%m-%d')):
-                        logging.debug("%s is not trade day." % yest_date.strftime('%Y-%m-%d') )
+                        logging.debug("%s is not trade day." % yest_date.strftime('%Y-%m-%d'))
                         yest_date = yest_date + datetime.timedelta(days=-1)
                     else:
                         while True:
@@ -142,6 +145,4 @@ if __name__ == '__main__':
         daylist = common.getconfig(section="basicinfo", configname="daylist")
         daylist = daylist.split(",")
 
-
     duotou.run(daylist)
-
