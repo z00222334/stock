@@ -10,9 +10,10 @@ import pandas as pd
 import getstocks
 import datetime
 
-
 # 考虑到要呈现的时候如果只有代码，不太直观，需要提供下股票名字
 # duotou_dict = {}  # 多头字典，最终提供多头股票信息
+
+RESULT_DIR = "result"
 
 
 class duotouCode:
@@ -25,7 +26,7 @@ class duotouCode:
             # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
             # ret = is_duotou(stockid, daylist)
             self.is_duotou(stockid, daylist)
-        result_file = "DuoTou.txt"
+        result_file = RESULT_DIR + os.path.sep +"DuoTou.txt"
         with open(result_file, 'w') as f:
             for i in self.duotou_list:
                 stockname = common.get_stockname_from_code(int(i))
