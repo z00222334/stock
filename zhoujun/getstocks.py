@@ -11,6 +11,7 @@ import logging
 import os
 import common
 import sys
+import codemap
 
 IPODATE = 300   # 上市时间150天
 
@@ -22,7 +23,7 @@ def save2csv(stockid):
     if os.path.exists(dirname):
         pass
     else:
-        logging.debug("stock data dir is not exist, create it.")
+        os.remove(dirname)
         os.mkdir(dirname)
     logging.debug("write file for code %s start" % stockid)
     filename = stockid + ".csv"  # 拿到的stockid是numpy。int64
@@ -52,4 +53,6 @@ def run():
 
 
 if __name__ == '__main__':
+    # 先生成代码列表 然后执行获取
+    codemap.generate_map()
     run()

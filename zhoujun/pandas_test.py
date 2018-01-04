@@ -14,10 +14,10 @@ df = pd.read_csv(csvpath)
 # print df.head(n=5)
 day = "2017-11-24"
 # print df.head(n=100).set_index("date").ix[day]
-print df.get(day)
-print df.index
-for i in  df.index:
-    print i
+print df.tail(5).close
+print min(df.tail(5).close)
+
+print df.tail(5)['close']
 
 #
 # one_info = pd.read_csv(csvpath).set_index('date').head(n=100)

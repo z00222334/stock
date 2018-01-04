@@ -65,17 +65,17 @@ def is_trade_day(date):
     return False
 
 
-def mailresult(ctx):
+def mailresult(ctx, subject):
     if not ctx:
         return
-    receiver = 'zjny.my@163.com'
-    subject = 'python email test'
+    receiver = 'zjny.my@163.com,377046838@qq.com;'
+    # subject = 'python email test'
     smtpserver = 'smtp.qq.com'
     sender = 'wudihuoyan@qq.com'
     password = 'Huawei~_123'
 
-    msg = MIMEText(ctx, 'text', 'utf-8')  # 中文需参数‘utf-8’，单字节字符不需要
-    msg['Subject'] = Header("股票推荐", 'utf-8')
+    msg = MIMEText(ctx, 'plain', 'utf-8')  # 中文需参数‘utf-8’，单字节字符不需要
+    msg['Subject'] = Header(subject, 'utf-8')
 
     smtp = smtplib.SMTP_SSL(smtpserver, 465)
     smtp.login(sender, password)
@@ -100,6 +100,23 @@ def get_stockname_from_code(code):
         return result
     except:
         return "-1"
+
+
+def get_pe_from_code(code):
+    """
+    通过股票代码，获取到pe
+    :param self:
+    :param code:
+    :return:
+    """
+    codemap_file = "codemap.csv"
+    ret = pd.read_csv(codemap_file)
+    try:
+
+        result = ret.set_index("code").ix[code].get("pe")
+        return result
+    except:
+        return "Null"
 
 
 if __name__ == '__main__':

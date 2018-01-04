@@ -18,7 +18,7 @@ def generate_map():
         f.writelines("name,code,pe\n")
         for code in ret.index:
             pe = pelist.get(code)
-            if pe >= 100 or pe <= 0:
+            if pe >= 80 or pe <= 0:
                 # 如果pe过大，就不统计进来了，没用，风险过高
                 continue
             if amountlist.get(code) == 0:

@@ -26,18 +26,21 @@ class duotouCode:
             # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
             # ret = is_duotou(stockid, daylist)
             self.is_duotou(stockid, daylist)
-        result_file = RESULT_DIR + os.path.sep +"DuoTou.txt"
+        result_file = RESULT_DIR + os.path.sep + "DuoTou.csv"
         with open(result_file, 'w') as f:
-            for i in self.duotou_list:
-                stockname = common.get_stockname_from_code(int(i))
-                if stockname != "ST":
-                    f.writelines(i + "," + stockname + "\n")
+            f.writelines("name,code,pe\n")
+            for icode in self.duotou_list:
+                stockname = common.get_stockname_from_code(int(icode))
+                pe = common.get_pe_from_code(int(icode))
+
+                if pe <= 65 and pe > 1:
+                    linectx = "%s,%s,%s\n" % (icode, stockname, pe)
+                    f.writelines(linectx)
         with open(result_file, 'r') as f:
             allinfo = f.readlines()
-            # print allinfo
-            common.mailresult(str(allinfo))
+            print('\n'.join(allinfo))
+            common.mailresult(''.join(allinfo), sub = "多头股票推荐")
         print "*" * 100
-        print self.duotou_list
         print "Total number is : %d" % len(self.duotou_list)
 
     def is_going_up(self):
@@ -59,7 +62,7 @@ class duotouCode:
         """
         # 获取单个股票的数据，进行分析
         code = str(code)
-        print "start calc code %s" % code
+        logging.debug("start calc code %s" % code)
         csvpath = os.pardir + os.path.sep + "stockdata" + os.path.sep + "%s.csv" % code
         if not os.path.exists(csvpath):
             # 这里可能存在异常，文件有可能不存在，因为获取的时候，存入cvs，有时候会timeout
@@ -82,18 +85,27 @@ class duotouCode:
             d1 = one_info.ix[daylist[0]]
             d2 = one_info.ix[daylist[1]]
             d3 = one_info.ix[daylist[2]]
+
             logging.debug("d1 is %s;d2 is %s;d3 is %s" % (d1, d2, d3))
+            # 规则：均线形成多头
             if not (d1['ma5'] >= d1['ma10'] and d1['ma10'] >= d1['ma20']) and \
                     (d2['ma5'] >= d2['ma10'] and d2['ma10'] >= d2['ma20']) and \
-                    (d3['ma5'] >= d3['ma10'] and d3['ma10'] >= d3['ma20']):
-                logging.debug("%s:多头排列" % code)
-                self.duotou_list.append(code)
-                return True
+                    (d3['ma5'] >= d3['ma10'] and d3['ma10'] >= d3['ma20']) and \
+                    (d3['ma5'] > d2['ma5'] and d3['ma10'] >= d2['ma10'] and d3['ma20'] >= d2['ma20']):
+                # 规则： 成交量多头 五日成交量多头
+                if d3['volume'] > d2['volume'] and d2['volume'] >= d1['volume']:
+                    # 规则：当日收盘 超过5日均线
+                    if d3['close'] >= d3['ma5'] and d3['price_change'] > 0 and d2['price_change'] >= 0:
+                        # 10日最低成交量 出现在最近5日
+                        if min(one_info.tail(10).volume) == min(one_info.tail(5).volume):
+                            logging.debug("%s:多头排列" % code)
+                            self.duotou_list.append(code)
+                            return True
             else:
                 logging.debug("%s:非多头排列" % code)
                 return False
         except:
-            logging.error("error in  is_duotou")
+            logging.error("error in  is_duotou when calc %s" % code)
             return False
 
     @staticmethod
@@ -143,7 +155,9 @@ if __name__ == '__main__':
         logging.debug("daylist is %s" % str(daylist))
     else:
         # 否则使用配置的时间列表
-        daylist = common.getconfig(section="basicinfo", configname="daylist")
-        daylist = daylist.split(",")
+        # daylist = common.getconfig(section="basicinfo", configname="daylist")
+        # daylist = daylist.split(",")
+        # ***************************** CONFIG HERE ************************************
+        daylist = "2017-12-29,2018-01-02,2018-01-03".split(",")
 
     duotou.run(daylist)
