@@ -46,7 +46,7 @@ def run():
     logging.debug("starting ...")
     for stockid in common.get_stocklist():
         # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
-        # ret = is_duotou(stockid, daylist)
+        # ret = is_irule(stockid, daylist)
         count = count + 1
         save2csv(stockid)
     logging.debug("total is %d" % count)

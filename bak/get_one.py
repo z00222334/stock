@@ -4,7 +4,7 @@ import tushare as ts
 import time
 import sys
 
-def is_duotou(code, daylist):
+def is_irule(code, daylist):
     """
     根据股票代码和日期，返回当日是否均线多头排列
     规则设定，多头排列不仅仅是当天多头，更需要看前面两天是不是
@@ -63,4 +63,4 @@ if __name__ == '__main__':
     # print  stockid_list
     for stockid in stockid_list:
         # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
-        ret = is_duotou(stockid, daylist)
+        ret = is_irule(stockid, daylist)
