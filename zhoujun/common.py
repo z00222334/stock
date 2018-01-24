@@ -14,9 +14,10 @@ logging.basicConfig(format="%(asctime)s %(message)s",
 
 CONFIGFILE = "config.ini"
 
-DAYLIST = "2018-01-19,2018-01-23,2018-01-22".split(",")
 
 class Common:
+    DAYLIST = "2018-01-22,2018-01-23,2018-01-24".split(",")
+
     # 所有股票代码，每天都会更新，根据一定条件
     STOCKMAP = "codemap.csv"
 

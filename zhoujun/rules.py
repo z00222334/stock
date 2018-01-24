@@ -7,39 +7,35 @@ import os
 import common
 import logging
 import pandas as pd
-import getstocks
 from common import Common
-
-daylist = common.DAYLIST
 
 
 class Rule:
-    irule_codelist = []
+    irule_codelist = []  # 满足条件的股票列表
 
-    stocklist = common.get_stocklist()
-
-    def run(self, daylist):
-        # for stockid in stocklist:
-        for stockid in self.stocklist:
-            # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
-            # ret = is_irule(stockid, daylist)
-            self.is_irule(stockid, daylist)
-        result_file = Common.REPORTPATH + Common.sep + "irule.csv"
-        with open(result_file, 'w') as f:
-            f.writelines("name,code,pe\n")
-            for icode in self.irule_codelist:
-                stockname = common.get_stockname_from_code(int(icode))
-                pe = common.get_pe_from_code(int(icode))
-
-                if pe <= 70 and pe > 1:
-                    linectx = "%s,%s,%s\n" % (icode, stockname, pe)
-                    f.writelines(linectx)
-        with open(result_file, 'r') as f:
-            allinfo = f.readlines()
-            print('\n'.join(allinfo))
-            common.mailresult(''.join(allinfo), subject="多头股票推荐")
-        print "*" * 100
-        print "Total number is : %d" % len(self.irule_codelist)
+    #
+    # def run(self, daylist, stocklist):
+    #     # for stockid in stocklist:
+    #     for stockid in self.stocklist:
+    #         # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
+    #         # ret = is_irule(stockid, daylist)
+    #         self.is_irule(stockid, daylist)
+    #     result_file = Common.REPORTPATH + Common.sep + "irule.csv"
+    #     with open(result_file, 'w') as f:
+    #         f.writelines("name,code,pe\n")
+    #         for icode in self.irule_codelist:
+    #             stockname = common.get_stockname_from_code(int(icode))
+    #             pe = common.get_pe_from_code(int(icode))
+    #
+    #             if pe <= 150 and pe > 1:
+    #                 linectx = "%s,%s,%s\n" % (icode, stockname, pe)
+    #                 f.writelines(linectx)
+    #     with open(result_file, 'r') as f:
+    #         allinfo = f.readlines()
+    #         print('\n'.join(allinfo))
+    #         common.mailresult(''.join(allinfo), subject="多头股票推荐")
+    #     print "*" * 100
+    #     print "Total number is : %d" % len(self.irule_codelist)
 
     def is_duotou(self, code, daylist):
         """
@@ -77,27 +73,25 @@ class Rule:
             d2 = one_info.ix[daylist[1]]
             d3 = one_info.ix[daylist[2]]
 
-            logging.debug("d1 is %s;d2 is %s;d3 is %s" % (d1, d2, d3))
+            # logging.debug("d1 is %s;d2 is %s;d3 is %s" % (d1, d2, d3))
             # 规则：均线形成多头
-            if not (d1['ma5'] >= d1['ma10'] and d1['ma10'] >= d1['ma20']) and \
+            if not (d1['ma5'] >= d1['ma10']) and \
                     (d2['ma5'] >= d2['ma10'] and d2['ma10'] >= d2['ma20']) and \
                     (d3['ma5'] >= d3['ma10'] and d3['ma10'] >= d3['ma20']) and \
                     (d3['ma5'] > d2['ma5'] and d3['ma10'] >= d2['ma10'] and d3['ma20'] >= d2['ma20']):
                 # 规则： 成交量多头 五日成交量多头
-                if d3['volume'] > d2['volume'] and d2['volume'] >= d1['volume']:
-                    # 规则：当日收盘 超过5日均线
-                    if d3['close'] >= d3['ma5'] and d3['price_change'] > 0 and d2['price_change'] >= 0:
+                if d3['volume'] > d1['volume'] and d2['volume'] >= d1['volume']:
+                    # 规则：当日收盘 超过5日均线,近两天都涨,收盘价不超过近30天的最低位15%
+                    if d3['close'] >= d3['ma5'] and min(d2['price_change'], d3['price_change']) >= 0 and \
+                            min(one_info.tail(30).close) * 1.15 >= d3['close']:
                         # 10日最低成交量 出现在最近5日
-                        if min(one_info.tail(10).volume) == min(one_info.tail(5).volume):
+                        if min(one_info.tail(20).volume) == min(one_info.tail(10).volume):
                             logging.debug("%s:多头排列" % code)
                             self.irule_codelist.append(code)
-                            return True
             else:
                 logging.debug("%s:非多头排列" % code)
-                return False
         except:
             logging.error("error in  is_irule when calc %s" % code)
-            return False
 
     def yiyangsanxian(self, code, daylist):
         today = daylist[0]

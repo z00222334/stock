@@ -2,7 +2,7 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.header import Header
-
+from common import *
 
 def mailresult(ctx, subject):
     if not ctx:
@@ -33,9 +33,8 @@ def write_result_and_mail(codelist, result_file, subjectname):
         for icode in codelist:
             stockname = get_stockname_from_code(int(icode))
             pe = get_pe_from_code(int(icode))
-            if pe <= 70 and pe > 1:
-                linectx = "%s,%s,%s\n" % (icode, stockname, pe)
-                f.writelines(linectx)
+            linectx = "%s,%s,%s\n" % (icode, stockname, pe)
+            f.writelines(linectx)
     with open(result_file, 'r') as f:
         allinfo = f.readlines()
         print('\n'.join(allinfo))

@@ -13,6 +13,7 @@ import common
 import sys
 from common import Common
 import datetime
+import pandas as pd
 
 
 class Stockdata:
@@ -66,8 +67,8 @@ class Stockdata:
         stockfilepath = self.datastore + Common.sep + storefile
         df = ts.get_hist_data(stockid)
         length = len(df.index)
-        if length <= IPODATE:
-            logging.debug("ipodate not longer than %d days,skip %s!" % (IPODATE, stockid))
+        if length <= Common.IPODATE:
+            logging.debug("ipodate not longer than %d days,skip %s!" % (Common.IPODATE, stockid))
             return False
         if df is None:
             logging.debug("did not get %s data correctly" % stockid)
@@ -118,8 +119,8 @@ class Stockdata:
                 if "ST" in stockname or "N" in stockname:
                     # 新股和退市股 不考虑
                     continue
-                # 换手率大于1，并且涨幅大于0
-                if turnoverratiolist.get(code) >= 1 and changepercentlist.get(code) >= 0:
+                # 换手率大于1.5
+                if turnoverratiolist.get(code) >= 1.5:
                     continue
                 self.codelist.append(code)
                 writeIn = "%s,\"%s\",%s\n" % (stockname, str(code), str(pe))
@@ -128,20 +129,19 @@ class Stockdata:
             self.createflag()
             logging.debug("get code and name map end.Total is %d / %d" % (len(self.codelist), totalNum))
 
+    @staticmethod
     def get_stocklist():
         """
         获取所有股票列表，暂时没有用到，通过storestocklist来获取列表了，更加方便
+        #TODO 最简单的办法是通过文件列表来获取，因为文件列表的是最终的。这里暂时不修改
         """
         # 由于pandas 读取csv文件的时候会出现数字去掉前面的0的现象，导致无法获取到真正的股票id
         # 因此需要限制code的读取类型是str
-        ret = pd.read_csv(STOCKMAP, converters={'code': str})
+        ret = pd.read_csv(Common.STOCKMAP, converters={'code': str})
         alllist = ret['code']
         result_list = []
         for i in alllist:
-            if "N" not in i and "ST" not in i:
-                result_list.append(i)
-            else:
-                logging.debug("stock %s is not needed" % i)
+            result_list.append(i)
         return result_list
 
     def createflag(self):
@@ -157,6 +157,7 @@ class Stockdata:
             return False
 
 
+# TODO 调测成功后可以删除
 if __name__ == '__main__':
     # 先生成代码列表 然后执行获取
     data = Stockdata()
