@@ -4,19 +4,36 @@ import sys
 import platform
 import ConfigParser
 import tushare as ts
-import smtplib
-from email.mime.text import MIMEText
-from email.header import Header
-import pandas as pd
-
-CONFIGFILE = "config.ini"
-STOCKMAP = "codemap.csv"
-
 import logging
+import pandas as pd
+import os
+import datetime
 
 logging.basicConfig(format="%(asctime)s %(message)s",
                     level=logging.DEBUG)
 
+CONFIGFILE = "config.ini"
+
+DAYLIST = "2018-01-19,2018-01-23,2018-01-22".split(",")
+
+class Common:
+    # 所有股票代码，每天都会更新，根据一定条件
+    STOCKMAP = "codemap.csv"
+
+    # 所有股票的存放目录名字
+    DATAPATH = "stockdata"
+
+    # 操作系统路径分隔符
+    sep = os.path.sep
+
+    # 报告存放目录
+    REPORTPATH = "result"
+
+    # 上市时间xx天
+    IPODATE = 300
+
+    # 执行标记记录地址
+    FLAGPATH = "flag"
 
 def getconfig(section, configname):
     """
@@ -24,23 +41,6 @@ def getconfig(section, configname):
     cf = ConfigParser.ConfigParser()
     cf.read(CONFIGFILE)
     return cf.get(section, configname)
-
-
-def get_stocklist():
-    """
-    获取所有股票列表
-    """
-    # 由于pandas 读取csv文件的时候会出现数字去掉前面的0的现象，导致无法获取到真正的股票id
-    # 因此需要限制code的读取类型是str
-    ret = pd.read_csv(STOCKMAP, converters={'code': str})
-    alllist = ret['code']
-    result_list = []
-    for i in alllist:
-        if "N" not in i and "ST" not in i:
-            result_list.append(i)
-        else:
-            logging.debug("stock %s is not needed" % i)
-    return result_list
 
 
 def get_stockfile_list():
@@ -63,24 +63,6 @@ def is_trade_day(date):
             return True
     logging.debug("%s is not tradeday" % date)
     return False
-
-
-def mailresult(ctx, subject):
-    if not ctx:
-        return
-    receiver = 'zjny.my@163.com'
-    # subject = 'python email test'
-    smtpserver = 'smtp.qq.com'
-    sender = 'wudihuoyan@qq.com'
-    password = 'Huawei~_123'
-
-    msg = MIMEText(ctx, 'plain', 'utf-8')  # 中文需参数‘utf-8’，单字节字符不需要
-    msg['Subject'] = Header(subject, 'utf-8')
-
-    smtp = smtplib.SMTP_SSL(smtpserver, 465)
-    smtp.login(sender, password)
-    smtp.sendmail(sender, receiver, msg.as_string())
-    smtp.quit()
 
 
 def get_stockname_from_code(code):
@@ -118,25 +100,39 @@ def get_pe_from_code(code):
     except:
         return "Null"
 
+    def get_last_trade_days():
+        """
+        获取今天的日期，格式指定'%Y-%m-%d',应用到tushare中的方法调用
+        :return:
+        """
+        today_date = datetime.datetime.now()  # .strftime('%Y-%m-%d')
+        yest_date = today_date + datetime.timedelta(days=-1)
+        yest_yest_date = yest_date + datetime.timedelta(days=-1)
+        while True:
+            if not common.is_trade_day(today_date.strftime('%Y-%m-%d')):
+                logging.debug("%s is not trade day." % today_date.strftime('%Y-%m-%d'))
+                today_date = today_date + datetime.timedelta(days=-1)
+            else:
+                while True:
+                    if not common.is_trade_day(yest_date.strftime('%Y-%m-%d')):
+                        logging.debug("%s is not trade day." % yest_date.strftime('%Y-%m-%d'))
+                        yest_date = yest_date + datetime.timedelta(days=-1)
+                    else:
+                        while True:
+                            yest_yest_date = yest_date + datetime.timedelta(days=-1)
+                            if not common.is_trade_day(yest_yest_date.strftime('%Y-%m-%d')):
+                                logging.debug("%s is not trade day." % yest_yest_date.strftime('%Y-%m-%d'))
+                                yest_yest_date = yest_yest_date + datetime.timedelta(days=-1)
+                            else:
+                                break
+                        break
+                    break
+            break
 
-def write_result_and_mail(codelist, result_file, subjectname):
-    """
-    通过代码列表写入信息，主要包含代码、名字、pe、市值等，发送邮件
-    :param codelist:
-    :return:
-    """
-    with open(result_file, 'w') as f:
-        f.writelines("name,code,pe\n")
-        for icode in codelist:
-            stockname = get_stockname_from_code(int(icode))
-            pe = get_pe_from_code(int(icode))
-            if pe <= 70 and pe > 1:
-                linectx = "%s,%s,%s\n" % (icode, stockname, pe)
-                f.writelines(linectx)
-    with open(result_file, 'r') as f:
-        allinfo = f.readlines()
-        print('\n'.join(allinfo))
-        mailresult(''.join(allinfo), subject=subjectname)
+        today_date = today_date.strftime('%Y-%m-%d')
+        yest_date = yest_date.strftime('%Y-%m-%d')
+        yest_yest_date = yest_yest_date.strftime('%Y-%m-%d')
+        return yest_yest_date, yest_date, today_date
 
 
 if __name__ == '__main__':

@@ -8,13 +8,10 @@ import common
 import logging
 import pandas as pd
 import getstocks
-import datetime
+from common import Common
 
-# 考虑到要呈现的时候如果只有代码，不太直观，需要提供下股票名字
-# irule_dict = {}  # 多头字典，最终提供多头股票信息
+daylist = common.DAYLIST
 
-RESULT_DIR = "result"
-daylist = "2018-01-16,2018-01-17,2018-01-18".split(",")
 
 class Rule:
     irule_codelist = []
@@ -27,7 +24,7 @@ class Rule:
             # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
             # ret = is_irule(stockid, daylist)
             self.is_irule(stockid, daylist)
-        result_file = RESULT_DIR + os.path.sep + "irule.csv"
+        result_file = Common.REPORTPATH + Common.sep + "irule.csv"
         with open(result_file, 'w') as f:
             f.writelines("name,code,pe\n")
             for icode in self.irule_codelist:
@@ -44,9 +41,7 @@ class Rule:
         print "*" * 100
         print "Total number is : %d" % len(self.irule_codelist)
 
-
-
-    def is_irule(self, code, daylist):
+    def is_duotou(self, code, daylist):
         """
         根据股票代码和日期，返回当日是否均线多头排列
         规则设定，多头排列不仅仅是当天多头，更需要看前面两天是不是
@@ -103,41 +98,6 @@ class Rule:
         except:
             logging.error("error in  is_irule when calc %s" % code)
             return False
-
-    @staticmethod
-    def get_last_trade_days():
-        """
-        获取今天的日期，格式指定'%Y-%m-%d',应用到tushare中的方法调用
-        :return:
-        """
-        today_date = datetime.datetime.now()  # .strftime('%Y-%m-%d')
-        yest_date = today_date + datetime.timedelta(days=-1)
-        yest_yest_date = yest_date + datetime.timedelta(days=-1)
-        while True:
-            if not common.is_trade_day(today_date.strftime('%Y-%m-%d')):
-                logging.debug("%s is not trade day." % today_date.strftime('%Y-%m-%d'))
-                today_date = today_date + datetime.timedelta(days=-1)
-            else:
-                while True:
-                    if not common.is_trade_day(yest_date.strftime('%Y-%m-%d')):
-                        logging.debug("%s is not trade day." % yest_date.strftime('%Y-%m-%d'))
-                        yest_date = yest_date + datetime.timedelta(days=-1)
-                    else:
-                        while True:
-                            yest_yest_date = yest_date + datetime.timedelta(days=-1)
-                            if not common.is_trade_day(yest_yest_date.strftime('%Y-%m-%d')):
-                                logging.debug("%s is not trade day." % yest_yest_date.strftime('%Y-%m-%d'))
-                                yest_yest_date = yest_yest_date + datetime.timedelta(days=-1)
-                            else:
-                                break
-                        break
-                    break
-            break
-
-        today_date = today_date.strftime('%Y-%m-%d')
-        yest_date = yest_date.strftime('%Y-%m-%d')
-        yest_yest_date = yest_yest_date.strftime('%Y-%m-%d')
-        return yest_yest_date, yest_date, today_date
 
     def yiyangsanxian(self, code, daylist):
         today = daylist[0]

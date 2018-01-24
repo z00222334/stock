@@ -12,7 +12,7 @@ def run(daylist):
     for stockid in irule.stocklist:
         # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
         # ret = is_irule(stockid, daylist)
-        irule.is_irule(stockid, daylist)
+        irule.is_duotou(stockid, daylist)
     result_file = RESULT_DIR + os.path.sep + "duotou.csv"
     common.write_result_and_mail(irule.irule_codelist, result_file, subjectname="多头股票推荐")
     print "*" * 100
