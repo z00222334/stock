@@ -16,7 +16,8 @@ CONFIGFILE = "config.ini"
 
 
 class Common:
-    DAYLIST = "2018-01-22,2018-01-23,2018-01-24".split(",")
+    # 所有交易日
+    tradeday_list = []
 
     # 所有股票代码，每天都会更新，根据一定条件
     STOCKMAP = "codemap.csv"
@@ -36,6 +37,40 @@ class Common:
     # 执行标记记录地址
     FLAGPATH = "flag"
 
+    def __init__(self):
+        self.getTradecal()
+
+    def getTradecal(self):
+        """
+        返回距今为止所有交易日
+        :return:
+        """
+        cal = ts.trade_cal()
+        alldays = cal[cal['isOpen'] == 1].set_index('calendarDate').index
+        tradeday_list = []
+        for i in alldays:
+            tradeday_list.append(i)
+        self.tradeday_list = tradeday_list
+        return tradeday_list
+
+    def get_last_trade_days(self):
+        """
+        获取今天的日期，格式指定'%Y-%m-%d',应用到tushare中的方法调用
+        通过所有交易日的数组，来推算前面两天
+        :return:
+        """
+        today_date = datetime.datetime.now().strftime('%Y-%m-%d')
+        yest_yest_date, yest_date = "", ""
+        for iday in self.tradeday_list:
+            if iday == today_date:
+                # 获得满足条件的时间在数组中的序号，然后推算出前面两天
+                idx = self.tradeday_list.index(iday)
+                yest_date = self.tradeday_list[idx - 1]
+                yest_yest_date = self.tradeday_list[idx - 2]
+        daylist = [yest_yest_date, yest_date, today_date]
+        return daylist
+
+
 def getconfig(section, configname):
     """
     从配置文件获取指定的配置项"""
@@ -54,16 +89,6 @@ def get_stockfile_list():
     filelist = os.listdir('stockdata')
     logging.debug("file no is :%d" % len(filelist))
     return filelist
-
-
-def is_trade_day(date):
-    all_day = ts.trade_cal()
-    for i in ts.trade_cal()['calendarDate']:
-        if date == i:
-            logging.debug("%s is tradeday" % date)
-            return True
-    logging.debug("%s is not tradeday" % date)
-    return False
 
 
 def get_stockname_from_code(code):
@@ -101,45 +126,7 @@ def get_pe_from_code(code):
     except:
         return "Null"
 
-    def get_last_trade_days():
-        """
-        获取今天的日期，格式指定'%Y-%m-%d',应用到tushare中的方法调用
-        :return:
-        """
-        today_date = datetime.datetime.now()  # .strftime('%Y-%m-%d')
-        yest_date = today_date + datetime.timedelta(days=-1)
-        yest_yest_date = yest_date + datetime.timedelta(days=-1)
-        while True:
-            if not common.is_trade_day(today_date.strftime('%Y-%m-%d')):
-                logging.debug("%s is not trade day." % today_date.strftime('%Y-%m-%d'))
-                today_date = today_date + datetime.timedelta(days=-1)
-            else:
-                while True:
-                    if not common.is_trade_day(yest_date.strftime('%Y-%m-%d')):
-                        logging.debug("%s is not trade day." % yest_date.strftime('%Y-%m-%d'))
-                        yest_date = yest_date + datetime.timedelta(days=-1)
-                    else:
-                        while True:
-                            yest_yest_date = yest_date + datetime.timedelta(days=-1)
-                            if not common.is_trade_day(yest_yest_date.strftime('%Y-%m-%d')):
-                                logging.debug("%s is not trade day." % yest_yest_date.strftime('%Y-%m-%d'))
-                                yest_yest_date = yest_yest_date + datetime.timedelta(days=-1)
-                            else:
-                                break
-                        break
-                    break
-            break
-
-        today_date = today_date.strftime('%Y-%m-%d')
-        yest_date = yest_date.strftime('%Y-%m-%d')
-        yest_yest_date = yest_yest_date.strftime('%Y-%m-%d')
-        return yest_yest_date, yest_date, today_date
-
 
 if __name__ == '__main__':
-
-    for i in get_stocklist():
-        print i
-    sys.exit(1)
-    rest = get_stockname_from_code(603978)
-    print rest
+    com = Common()
+    com.get_last_trade_days()

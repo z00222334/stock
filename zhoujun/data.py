@@ -156,6 +156,10 @@ class Stockdata:
         else:
             return False
 
+    def get_tradeday_region(self, stock):
+        # todo
+        pass
+
 
 # TODO 调测成功后可以删除
 if __name__ == '__main__':

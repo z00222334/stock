@@ -33,7 +33,7 @@ def yiyangsanxian(stocklist):
 
 if __name__ == '__main__':
     stockdata = Stockdata()
-    daylist = Common.DAYLIST
+    daylist = Common().get_last_trade_days()
     stocklist = stockdata.get_stocklist()
-
+    # stocklist = ["600644"]
     duotou(daylist, stocklist)
