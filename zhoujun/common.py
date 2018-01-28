@@ -59,8 +59,10 @@ class Common:
         通过所有交易日的数组，来推算前面两天
         :return:
         """
-        today_date = datetime.datetime.now().strftime('%Y-%m-%d')
+        #today_date = datetime.datetime.now().strftime('%Y-%m-%d')
+        today_date = ts.get_k_data("600000").set_index('date').tail(1).index[0]
         yest_yest_date, yest_date = "", ""
+
         for iday in self.tradeday_list:
             if iday == today_date:
                 # 获得满足条件的时间在数组中的序号，然后推算出前面两天
@@ -128,5 +130,5 @@ def get_pe_from_code(code):
 
 
 if __name__ == '__main__':
-    com = Common()
-    com.get_last_trade_days()
+    p=Common()
+    print p.get_last_trade_days()
