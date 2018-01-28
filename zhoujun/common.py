@@ -53,14 +53,15 @@ class Common:
         self.tradeday_list = tradeday_list
         return tradeday_list
 
-    def get_last_trade_days(self):
+    def get_last_trade_days(self,todaydate=""):
         """
         获取今天的日期，格式指定'%Y-%m-%d',应用到tushare中的方法调用
         通过所有交易日的数组，来推算前面两天
         :return:
         """
         #today_date = datetime.datetime.now().strftime('%Y-%m-%d')
-        today_date = ts.get_k_data("600000").set_index('date').tail(1).index[0]
+        if today_date == "":
+            today_date = ts.get_k_data("600000").set_index('date').tail(1).index[0]
         yest_yest_date, yest_date = "", ""
 
         for iday in self.tradeday_list:
