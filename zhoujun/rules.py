@@ -89,9 +89,10 @@ class Rule:
             return False
 
     def duotou_huice(self, code, start_date, end_date, alldays):
-        for i in alldays:
-        # todo
-        for firstday in
+        pass
+        # for i in alldays:
+        # # todo
+        # for firstday in
 
     def yiyangsanxian(self, code, daylist):
         today = daylist[0]
