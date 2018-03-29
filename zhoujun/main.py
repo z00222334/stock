@@ -7,6 +7,7 @@ from common import Common
 import os
 from mail import *
 from data import Stockdata
+import logging
 
 """
 调用所有规则，并发送邮件通知
@@ -33,7 +34,9 @@ def yiyangsanxian(stocklist):
 
 if __name__ == '__main__':
     stockdata = Stockdata()
-    daylist = Common().get_last_trade_days()
+    logging.debug("init stockdata end.")
+    # daylist = Common().get_last_trade_days()
+    daylist   = ['2018-03-27','2018-03-28','2018-03-29']
     stocklist = stockdata.get_stocklist()
     # stocklist = ["600644"]
     duotou(daylist, stocklist)

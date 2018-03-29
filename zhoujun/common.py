@@ -39,6 +39,7 @@ class Common:
 
     def __init__(self):
         self.getTradecal()
+        logging.debug("inited common func")
 
     def getTradecal(self):
         """
@@ -51,6 +52,7 @@ class Common:
         for i in alldays:
             tradeday_list.append(i)
         self.tradeday_list = tradeday_list
+        logging.debug("trade days is : %d" % len(self.tradeday_list))
         return tradeday_list
 
     def get_last_trade_days(self,today_date=""):

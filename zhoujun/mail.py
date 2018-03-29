@@ -11,7 +11,7 @@ def mailresult(ctx, subject):
     # subject = 'python email test'
     smtpserver = 'smtp.qq.com'
     sender = 'wudihuoyan@qq.com'
-    password = 'Huawei~_123'
+    password = 'Huawei@_123'
 
     msg = MIMEText(ctx, 'plain', 'utf-8')  # 中文需参数‘utf-8’，单字节字符不需要
     msg['Subject'] = Header(subject, 'utf-8')

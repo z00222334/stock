@@ -30,12 +30,12 @@ class Stockdata:
         logging.debug("starting ...")
         if self.hasflag():
             logging.debug("data already get today.no need to get data again.")
-            return
-        self.storestockmap()
-        for stockid in self.codelist:
-            # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
-            # ret = is_irule(stockid, daylist)
-            self.save2csv(stockid)
+        else:
+            self.storestockmap()
+            for stockid in self.codelist:
+                # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
+                # ret = is_irule(stockid, daylist)
+                self.save2csv(stockid)
 
     def deleteData(self):
         """
@@ -66,6 +66,8 @@ class Stockdata:
 
         stockfilepath = self.datastore + Common.sep + storefile
         df = ts.get_hist_data(stockid)
+        if df is  None:
+            return
         length = len(df.index)
         if length <= Common.IPODATE:
             logging.debug("ipodate not longer than %d days,skip %s!" % (Common.IPODATE, stockid))
