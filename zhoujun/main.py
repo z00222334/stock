@@ -1,13 +1,15 @@
 # coding:utf-8
 
 
-from rules import Rule
+import logging
+import os
+
 import common
 from common import Common
-import os
-from mail import *
 from data import Stockdata
-import logging
+from mail import *
+from rules import Rule
+
 
 """
 调用所有规则，并发送邮件通知
@@ -23,9 +25,9 @@ def duotou(daylist, stocklist):
         irule.is_duotou(stockid, daylist)
     result_file = Common.REPORTPATH + Common.sep + "duotou.csv"
     write_result_and_mail(irule.irule_codelist, result_file, subjectname="多头股票推荐")
-    print "*" * 100
-    print irule.irule_codelist
-    print "Total number is : %d" % len(irule.irule_codelist)
+    print("*" * 100)
+    print(irule.irule_codelist) 
+    print("Total number is : %d" % len(irule.irule_codelist))
 
 
 def yiyangsanxian(stocklist):
@@ -35,8 +37,8 @@ def yiyangsanxian(stocklist):
 if __name__ == '__main__':
     stockdata = Stockdata()
     logging.debug("init stockdata end.")
-    # daylist = Common().get_last_trade_days()
-    daylist   = ['2018-03-27','2018-03-28','2018-03-29']
+    daylist = Common().get_last_trade_days()
+    # daylist = ['2018-05-10', '2018-05-11', '2018-05-14']
     stocklist = stockdata.get_stocklist()
     # stocklist = ["600644"]
     duotou(daylist, stocklist)

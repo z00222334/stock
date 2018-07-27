@@ -53,7 +53,7 @@ class Rule:
         csvpath = os.pardir + os.path.sep + "stockdata" + os.path.sep + "%s.csv" % code
         if not os.path.exists(csvpath):
             # 这里可能存在异常，文件有可能不存在，因为获取的时候，存入cvs，有时候会timeout
-            logging.error("%s file not exist" % code)
+            logging.error("%s file %s not exist" % (code,csvpath))
             return False
 
         one_info = pd.read_csv(csvpath).set_index('date').head(n=100)
@@ -65,6 +65,10 @@ class Rule:
             d1 = one_info.ix[daylist[0]]
             d2 = one_info.ix[daylist[1]]
             d3 = one_info.ix[daylist[2]]
+        except:
+            logging.error("something lost in last three days")
+            return
+        try:
             # logging.debug("d1 is %s;d2 is %s;d3 is %s" % (d1, d2, d3))
             # 规则：均线形成多头
             if not (d1['ma5'] >= d1['ma10']) and \

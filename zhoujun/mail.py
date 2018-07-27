@@ -38,4 +38,4 @@ def write_result_and_mail(codelist, result_file, subjectname):
     with open(result_file, 'r') as f:
         allinfo = f.readlines()
         print('\n'.join(allinfo))
-        mailresult(''.join(allinfo), subject=subjectname)
+        mailresult('\n'.join(allinfo), subject=subjectname)

@@ -1,6 +1,7 @@
 # coding:utf-8
 
 from common import Common
+import time
 import rules
 
 
@@ -10,8 +11,14 @@ def backtest_duotou(stockid, startdate, enddate):
     enddate = "2018-01-25"
     tradedays = Common().tradeday_list
     startidx = tradedays.index(startdate)
+    print('start id is:%d' % startidx)
     endidx = tradedays.index(enddate)
     testdays = tradedays[startidx:endidx]
+    # print(tradedays)
+
+    time.sleep(100)
+    time.sleep(100)
+
     for iday in testdays:
         idayidx = tradedays.index(iday)
         after_tenday_idx = idayidx + 10
@@ -27,8 +34,8 @@ def backtest_duotou(stockid, startdate, enddate):
             iday_close = stockdata.ix[iday]['close']
             after_tenday_close = stockdata.ix[after_tenday]['close']
             changerate = (after_tenday_close-iday_close)/iday_close
-            print iday_close +"," + after_tenday_close + "," + changerate
+            print(iday_close +"," + after_tenday_close + "," + changerate)
 
 
 if __name__ == '__main__':
-    backtest_duotou('600000',1,1)
+    backtest_duotou('603002',1,1)
