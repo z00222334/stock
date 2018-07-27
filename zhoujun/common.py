@@ -11,12 +11,13 @@ import datetime
 logging.basicConfig(format="%(asctime)s %(message)s",
                     level=logging.DEBUG)
 
+
 class Common:
     # 所有交易日
     tradeday_list = []
 
     # 所有股票代码，每天都会更新，根据一定条件
-    STOCKMAP = "codemap.csv"
+    STOCKMAP = "tmp/codemap.csv"
 
     # 所有股票的存放目录名字
     DATAPATH = "stockdata"
@@ -51,7 +52,7 @@ class Common:
         logging.debug("trade days is : %d" % len(self.tradeday_list))
         return tradeday_list
 
-    def get_last_trade_days(self,today_date=""):
+    def get_last_trade_days(self, today_date=""):
         """
         获取今天的日期，格式指定'%Y-%m-%d',应用到tushare中的方法调用
         通过所有交易日的数组，来推算前面两天
@@ -59,7 +60,8 @@ class Common:
         """
         #today_date = datetime.datetime.now().strftime('%Y-%m-%d')
         if today_date == "":
-            today_date = ts.get_k_data("600000").set_index('date').tail(1).index[0]
+            today_date = ts.get_k_data("600000").set_index(
+                'date').tail(1).index[0]
         yest_yest_date, yest_date = "", ""
 
         for iday in self.tradeday_list:
@@ -94,15 +96,14 @@ def get_stockname_from_code(code):
     """
     通过股票代码，获取到股票名字
     """
-    codemap_file = "codemap.csv"
-    ret = pd.read_csv(codemap_file)
+    ret = pd.read_csv(Common.STOCKMAP)
     try:
 
         result = ret.set_index("code").ix[code].get("name")
         if "ST" in result:
             return "ST"
         return result
-    except:
+    except BaseException:
         return "-1"
 
 
@@ -110,16 +111,15 @@ def get_pe_from_code(code):
     """
     通过股票代码，获取到pe
     """
-    codemap_file = "codemap.csv"
-    ret = pd.read_csv(codemap_file)
+    ret = pd.read_csv(Common.STOCKMAP)
     try:
 
         result = ret.set_index("code").ix[code].get("pe")
         return result
-    except:
+    except BaseException:
         return "Null"
 
 
 if __name__ == '__main__':
-    p=Common()
+    p = Common()
     print(p.get_last_trade_days())

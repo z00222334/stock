@@ -23,6 +23,7 @@ class Stockdata:
     totalNum = 0
     today_date = datetime.datetime.now().strftime('%Y-%m-%d')  # 日期，用于作为是否已经生成数据的标记
     stockIndustry_dic = {}
+
     def __init__(self):
         """
         运行入口
@@ -30,7 +31,8 @@ class Stockdata:
         """
         logging.debug("starting ...")
         if self.hasflag():
-            logging.debug("data already get today. There is no need to get data again.")
+            logging.debug(
+                "data already get today. There is no need to get data again.")
         else:
             self.storestockmap()
             for stockid in self.codelist:
@@ -54,7 +56,7 @@ class Stockdata:
 
     def getCodeIndustry(self):
         # ts.get_industry_classified().set_index('code').ix['002723']['name']
-        ret = ts.get_industry_classified()#3.set_index('code')
+        ret = ts.get_industry_classified()  # 3.set_index('code')
         for i in range(len(ret)):
             codenumber = ret.iloc[i]['code']
             print(codenumber)
@@ -78,11 +80,13 @@ class Stockdata:
 
         stockfilepath = self.datastore + Common.sep + storefile
         df = ts.get_hist_data(stockid)
-        if df is  None:
+        if df is None:
             return
         length = len(df.index)
         if length <= Common.IPODATE:
-            logging.debug("ipodate not longer than %d days,skip %s!" % (Common.IPODATE, stockid))
+            logging.debug(
+                "ipodate not longer than %d days,skip %s!" %
+                (Common.IPODATE, stockid))
             return False
         if df is None:
             logging.debug("did not get %s data correctly" % stockid)
@@ -104,7 +108,7 @@ class Stockdata:
         ret = ts.get_today_all().set_index('code')
         ret = pd.DataFrame(ret)
         # 针对名称去重，实际应用中发现tushare会下载重复的信息过来
-        ret = ret.drop_duplicates(['name']) 
+        ret = ret.drop_duplicates(['name'])
         """ 数据sample
         code   name       changepercent     trade   open   high  low  settlement  volume     turnoverratio    amount     per     pb    mktcap       nmc
         603999 读者传媒    3.964              8.13   7.8    8.22  7.75        7.82  8681412   3.76797        69894320  28.034  2.807  468288.0  187315.2
@@ -131,7 +135,7 @@ class Stockdata:
                     # 如果成交量是0 说明是停牌的，不需要关注。
                     continue
                 # 这里发现namelist的元素都是Unicode的，不是str因此需要转换，转换就编码成utf-8吧，方便点。
-                stockname = namelist.get(code)#.encode('utf-8')
+                stockname = namelist.get(code)  # .encode('utf-8')
                 if "ST" in stockname or "N" in stockname:
                     # 新股和退市股 不考虑
                     continue
@@ -143,10 +147,15 @@ class Stockdata:
                     codeIndustry = self.stockIndustry_dic[str(code)]
                 else:
                     codeIndustry = 'NULL'
-                writeIn = "%s,%s,%s,%s\n" % (stockname, str(code), str(pe),str(codeIndustry))
+                writeIn = "%s,%s,%s,%s\n" % (
+                    stockname, str(code), str(pe), str(codeIndustry))
                 f.writelines(writeIn)
             self.createflag()
-            logging.debug("get code and name map end.Total is %d / %d" % (len(self.codelist), totalNum))
+            logging.debug(
+                "get code and name map end.Total is %d / %d" %
+                (len(
+                    self.codelist),
+                    totalNum))
 
     @staticmethod
     def get_stocklist():
@@ -175,7 +184,7 @@ class Stockdata:
         else:
             return False
 
-            
+
 # TODO 调测成功后可以删除
 if __name__ == '__main__':
     # 先生成代码列表 然后执行获取
