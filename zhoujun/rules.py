@@ -8,34 +8,15 @@ import common
 import logging
 import pandas as pd
 from common import Common
+from  stockdates import tradeDate
 
 
 class Rule:
-    irule_codelist = []  # 满足条件的股票列表
+    # 多头列表
+    duotouCodeList = []
 
-    #
-    # def run(self, daylist, stocklist):
-    #     # for stockid in stocklist:
-    #     for stockid in self.stocklist:
-    #         # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
-    #         # ret = is_irule(stockid, daylist)
-    #         self.is_irule(stockid, daylist)
-    #     result_file = Common.REPORTPATH + Common.sep + "irule.csv"
-    #     with open(result_file, 'w') as f:
-    #         f.writelines("name,code,pe\n")
-    #         for icode in self.irule_codelist:
-    #             stockname = common.get_stockname_from_code(int(icode))
-    #             pe = common.get_pe_from_code(int(icode))
-    #
-    #             if pe <= 150 and pe > 1:
-    #                 linectx = "%s,%s,%s\n" % (icode, stockname, pe)
-    #                 f.writelines(linectx)
-    #     with open(result_file, 'r') as f:
-    #         allinfo = f.readlines()
-    #         print('\n'.join(allinfo))
-    #         common.mailresult(''.join(allinfo), subject="多头股票推荐")
-    #     print "*" * 100
-    #     print "Total number is : %d" % len(self.irule_codelist)
+    # 一阳三线列表
+    yiyangsanxianCodeList = []
 
     def is_duotou(self, code, daylist):
         """
@@ -49,26 +30,25 @@ class Rule:
         """
         # 获取单个股票的数据，进行分析
         code = str(code)
-        logging.debug("daylist is %s" % daylist)
+        # logging.debug("daylist is %s" % daylist)
         logging.debug("start calc code %s" % code)
-        csvpath = os.pardir + os.path.sep + "stockdata" + os.path.sep + "%s.csv" % code
+        csvpath = Common.StockDATAPATH + Common.sep + "%s.csv" % code
         if not os.path.exists(csvpath):
             # 这里可能存在异常，文件有可能不存在，因为获取的时候，存入cvs，有时候会timeout
-            logging.error("%s file %s not exist" % (code, csvpath))
+            logging.error("%s 文件 %s 不存在" % (code, csvpath))
             return False
 
         one_info = pd.read_csv(csvpath).set_index('date')
-        # print one_info
         # one_info = ts.get_hist_data(code)
         if one_info is None:
             return False
-        # print(one_info)
         try:
+            # 最近三天只能保证今天是有数据的，前面两天无法保证一定是有交易数据，可能存在停盘的现象
             d1 = one_info.ix[daylist[0]]
             d2 = one_info.ix[daylist[1]]
             d3 = one_info.ix[daylist[2]]
-        except BaseException:
-            logging.error("something lost in last three days")
+        except e:
+            logging.error("%s近三天存在数据缺失，导致近三天数据无法计算..... " % code)
             return
         try:
             # logging.debug("d1 is %s;d2 is %s;d3 is %s" % (d1, d2, d3))
@@ -83,49 +63,51 @@ class Rule:
                     # 规则：当日收盘 超过5日均线,近两天都涨,收盘价不超过近30天的最低位20%
                     if d3['close'] >= d3['ma5'] and min(
                             d2['price_change'], d3['price_change']) >= 0 and min(
-                            one_info.tail(20).close) * 1.2 >= d3['close']:
+                            one_info.tail(20).close) * 1.3 >= d3['close']:
                         # 10日最低成交量 出现在最近5日
                         if min(
-                                one_info.tail(20).volume) == min(
-                                one_info.tail(10).volume):
-                            logging.debug("%s:多头排列" % code)
-                            self.irule_codelist.append(code)
+                                one_info.tail(10).volume) == min(
+                                one_info.tail(5).volume):
+                            logging.info("%s:多头排列" % code)
+                            self.duotouCodeList.append(code)
                             return True
             else:
-                logging.debug("%s:非多头排列" % code)
+                logging.info("%s:非多头排列" % code)
                 return False
-        except BaseException:
+        except e:
             logging.error("error in  check duotou when calc %s" % code)
             return False
 
-    def duotou_huice(self, code, start_date, end_date, alldays):
-        pass
-        # for i in alldays:
-        # # todo
-        # for firstday in
-
     def yiyangsanxian(self, code, daylist):
-        today = daylist[0]
-        csvpath = os.pardir + os.path.sep + "stockdata" + os.path.sep + "%s.csv" % code
+        today = daylist[2]
+        csvpath = Common.StockDATAPATH + os.path.sep + "%s.csv" % code
         if not os.path.exists(csvpath):
             # 这里可能存在异常，文件有可能不存在，因为获取的时候，存入cvs，有时候会timeout
-            logging.error("%s file not exist" % code)
+            logging.error("%s file not exist ,pls check!" % code)
             return
 
-        one_info = pd.read_csv(csvpath).set_index('date').head(n=100)
-        # print one_info
-        # one_info = ts.get_hist_data(code)
+        one_info = pd.read_csv(csvpath).set_index('date').head(n=10)
         if one_info is None:
+            logging.error("no record read from datafile ")
             return False
 
         try:
-            ma5 = one_info.ix[today]['ma5']
-            ma10 = one_info.ix[today]['ma10']
-            ma20 = one_info.ix[today]['ma20']
-            close = one_info.ix[today]['close']
-            open = one_info.ix[today]['open']
+            ma5 = one_info.loc[today]['ma5']
+            ma10 = one_info.loc[today]['ma10']
+            ma20 = one_info.loc[today]['ma20']
+            close = one_info.loc[today]['close']
+            open = one_info.loc[today]['open']
             if close > max(ma5, ma10, ma20) and open < min(ma5, ma10, ma20):
-                logging.debug("%s : yiyangsanxian" % code)
-                self.irule_codelist.append(code)
+                logging.info("%s : 一阳三线！！！" % code)
+                self.yiyangsanxianCodeList.append(code)
+            else:
+                logging.info("%s 非一阳三线！" % code)
         except BaseException:
-            logging.error("error in  is_irule when calc %s" % code)
+            logging.error("error in  是否 一阳三线 when calc for stock %s" % code)
+
+if __name__ == '__main__':
+    rule  = Rule()
+    tdate = tradeDate()
+    daylist = tdate.get_last_trade_days()
+    rule.yiyangsanxian('000011',daylist)
+    print(rule.yiyangsanxianCodeList)

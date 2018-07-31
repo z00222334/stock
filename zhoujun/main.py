@@ -3,42 +3,45 @@
 
 import logging
 import os
-
 import common
+import time
 from common import Common
 from data import Stockdata
 from mail import *
 from rules import Rule
-
+from stockdates import tradeDate
 
 """
 调用所有规则，并发送邮件通知
 """
 
-
-def duotou(daylist, stocklist):
+def sendDuotou(daylist, stocklist):
     irule = Rule()
-    # for stockid in stocklist:
     for stockid in stocklist:
-        # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
-        # ret = is_irule(stockid, daylist)
         irule.is_duotou(stockid, daylist)
-    result_file = Common.REPORTPATH + Common.sep + "duotou.csv"
-    write_result_and_mail(irule.irule_codelist, result_file, subjectname="多头股票推荐")
+    result_file = Common.REPORTPATH + Common.sep + "多头排列.csv"
+    write_result_and_mail(irule.duotouCodeList, result_file, subjectname="多头股票推荐")
     print("*" * 100)
-    print(irule.irule_codelist) 
-    print("Total number is : %d" % len(irule.irule_codelist))
+    print(irule.duotouCodeList)
+    print("Total number is : %d" % len(irule.duotouCodeList))
 
 
-def yiyangsanxian(stocklist):
-    pass
+def send_yiyangsanxian(daylist,stocklist):
+    irule = Rule()
+    for stockid in stocklist:
+        irule.yiyangsanxian(stockid, daylist)
+    result_file = Common.REPORTPATH + Common.sep + "一阳三线.csv"
+    write_result_and_mail(irule.yiyangsanxianCodeList, result_file, subjectname="多头股票推荐")
+    print("*" * 100)
+    print(irule.yiyangsanxianCodeList)
+    print("Total number is : %d" % len(irule.yiyangsanxianCodeList))
 
 
 if __name__ == '__main__':
-    stockdata = Stockdata()
-    logging.debug("init stockdata end.")
-    daylist = Common().get_last_trade_days()
-    # daylist = ['2018-05-10', '2018-05-11', '2018-05-14']
-    stocklist = stockdata.get_stocklist()
-    # stocklist = ["600644"]
-    duotou(daylist, stocklist)
+    tradeDays = tradeDate()
+    daylist = tradeDays.get_last_trade_days()
+    stockdata = Stockdata(daylist[2])
+    stocklist = stockdata.getStocklistFromCodemap()
+    sendDuotou(daylist, stocklist)
+    send_yiyangsanxian(daylist, stocklist)
+    stockdata.createEndFlag()
