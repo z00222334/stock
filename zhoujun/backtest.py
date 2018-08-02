@@ -21,7 +21,7 @@ def backtest_duotou(stockid, startdate, enddate):
         after_tenday = tradedays[idayidx + 10]  # 10天以后的日期
         irule = rules.Rule()
 
-        is_duotou = irule.is_duotou(stockid, threedays)
+        is_duotou = irule.isDuotou(stockid, threedays)
         with open('duotoubacktest.txt', 'w+') as f:
             if is_duotou:
                 csvpath = Common.DATAPATH + Common.sep + "%s.csv" % code

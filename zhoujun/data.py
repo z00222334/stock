@@ -13,36 +13,31 @@ import common
 import pandas as pd
 import tushare as ts
 from common import Common
-from  stockdates import tradeDate
+from stockdates import tradeDate
 
 
-class Stockdata:
+class Stockdata(Common):
     lastTradeDate = ""
-    datastore = Common.StockDATAPATH
     codelist = []  # 所有满足条件的股票id列表，方便计算长度等信息
-    totalNum = 0
-    flagDate = datetime.datetime.now().strftime('%Y-%m-%d')  # 日期，用于作为是否已经生成数据的标记
 
     # 股票所属行业字典
     stockIndustry_dic = {}
 
-    def __init__(self,lastTradeDate):
+    def __init__(self, lastTradeDate):
         """
         运行入口
         :return:
         """
-        logging.debug("starting ...")
         self.lastTradeDate = lastTradeDate
         if self.hasFlag():
-            logging.debug(
-                "data already get today. There is no need to get data again.")
+            logging.debug("今日数据已经获取，不再重新下载.")
         else:
             self.deleteData()
             self.storeToStockmap()
             for stockid in self.codelist:
                 # stockname = all_stock_info.ix[stockid]['name'].decode('utf-8')
                 # ret = is_irule(stockid, daylist)
-                self.saveDateData2csv(stockid,todaydate=self.lastTradeDate)
+                self.saveDateData2csv(stockid, todaydate=self.lastTradeDate)
             self.getCodeIndustry()
 
     def deleteData(self):
@@ -50,11 +45,11 @@ class Stockdata:
         删除所有的股票记录csv文件，每天都重新获取
         :return:
         """
-        filelist = os.listdir(Common.StockDATAPATH)
+        filelist = os.listdir(self.StockDATAPATH)
         count = 0
         for filename in filelist:
             count = count + 1
-            os.remove(Common.StockDATAPATH + Common.sep + filename)
+            os.remove(self.StockDATAPATH + self.sep + filename)
         logging.debug("delete all stock data %d records." % count)
 
     def getCodeIndustry(self):
@@ -74,27 +69,26 @@ class Stockdata:
         """
         stockid = str(stockid)
         # todaydate = tradeDate.get_last_trade_days()[0]
-        if os.path.exists(self.datastore):
+        if os.path.exists(self.StockDATAPATH):
             pass
         else:
-            os.mkdir(self.datastore)
-        # logging.debug("write file for code %s start" % stockid)
+            os.mkdir(self.StockDATAPATH)
         storefile = stockid + ".csv"  # 拿到的stockid是numpy。int64
 
-        stockfilepath = self.datastore + Common.sep + storefile
+        stockfilepath = self.StockDATAPATH + self.sep + storefile
         df = ts.get_hist_data(stockid)
         if df is None:
             return
         length = len(df.index)
-        if length <= Common.IPODATE:
+        if length <= self.IPODATE:
             logging.debug(
                 "ipodate not longer than %d days,skip %s!" %
-                (Common.IPODATE, stockid))
+                (self.IPODATE, stockid))
             return False
         if todaydate in df.index:
             pass
         else:
-            logging.error("股票%s中当天交易记录丢失，直接返回,不记录该股票交易记录" % stockid )
+            logging.error("股票%s中当天交易记录丢失，直接返回,不记录该股票交易记录" % stockid)
             return False
         if df is None:
             logging.debug("did not get %s data correctly" % stockid)
@@ -112,7 +106,6 @@ class Stockdata:
         4、换手率大于1%，今日涨幅为正数
         :return:
         """
-        # 获取当日股票信息
         ret = ts.get_today_all().set_index('code')
         ret = pd.DataFrame(ret)
         # 针对名称去重，实际应用中发现tushare会下载重复的信息过来
@@ -120,7 +113,7 @@ class Stockdata:
         """ 数据sample
         code   name       changepercent     trade   open   high  low  settlement  volume     turnoverratio    amount
              per     pb    mktcap       nmc
-        603999 读者传媒    3.964              8.13   7.8    8.22  7.75        7.82  8681412   3.76797        69894320  
+        603999 读者传媒    3.964              8.13   7.8    8.22  7.75        7.82  8681412   3.76797        69894320
         28.034 2.807  468288.0  187315.2
 
         """
@@ -134,7 +127,7 @@ class Stockdata:
         totalNum = len(namelist)
 
         firstline = "name,code,pe,industry\n"
-        with open(Common.STOCKMAP, 'w') as f:
+        with open(self.STOCKMAP, 'w') as f:
             f.writelines(firstline)
             for code in ret.index:
                 pe = pelist.get(code)
@@ -166,82 +159,11 @@ class Stockdata:
                     totalNum))
 
     @staticmethod
-    def getStocklistFromCodemap():
-        """
-        获取所有股票列表，暂时没有用到，通过storestocklist来获取列表了，更加方便
-        """
-        # 由于pandas 读取csv文件的时候会出现数字去掉前面的0的现象，导致无法获取到真正的股票id
-        # 因此需要限制code的读取类型是str
-        logging.debug('start get info from %s' %
-                      os.path.abspath(Common.STOCKMAP))
-        ret = pd.read_csv(Common.STOCKMAP, converters={'code': str})
-        alllist = ret['code']
-        result_list = []
-        for i in alllist:
-            result_list.append(i)
-        return result_list
-
-    def createEndFlag(self):
-        flag = Common.FLAGPATH + Common.sep + self.flagDate
-        f = open(flag, 'w')
-        f.close()
-
-    def hasFlag(self):
-        flag = Common.FLAGPATH + Common.sep + self.flagDate
-        if os.path.exists(flag):
-            logging.debug("flag path : %s is exist" % flag)
-            return True
-        else:
-            return False
-
-    @staticmethod
     def getStockfileListFromDir():
         """
         获取所有股票文件列表，便于统计，此处的文件列表已经剔除了不复合条件的股票
         这样不用从全局的股票列表来遍历，缩短时间
         """
-        filelist = os.listdir(Common.StockDATAPATH)
+        filelist = os.listdir(self.StockDATAPATH)
         logging.debug("file no is :%d" % len(filelist))
         return filelist
-
-
-"""
-从codemap的文件中获取信息的方法统一放到codemap类中，都是静态方法
-"""
-class Codemap:
-    def __init__(self):
-        pass
-
-    @staticmethod
-    def getStocknameFromCodemap(code):
-        """
-        通过股票代码，获取到股票名字
-        """
-        ret = pd.read_csv(Common.STOCKMAP)
-        try:
-
-            result = ret.set_index("code").ix[code].get("name")
-            if "ST" in result:
-                return "ST"
-            return result
-        except BaseException:
-            return "-1"
-
-    def getPeFromCodemap(code):
-        """
-        通过股票代码，获取到pe
-        """
-        ret = pd.read_csv(Common.STOCKMAP)
-        try:
-
-            result = ret.set_index("code").ix[code].get("pe")
-            return result
-        except BaseException:
-            return "Null"
-
-# if __name__ == '__main__':
-#     # 先生成代码列表 然后执行获取
-#     data = Stockdata()
-#     # print(data.getCodeIndustry())
-#     # data.storestockmap()
-#     print(data.getStocklistFromCodemap())
